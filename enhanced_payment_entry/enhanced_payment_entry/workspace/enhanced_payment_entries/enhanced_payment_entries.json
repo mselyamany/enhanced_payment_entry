@@ -1,0 +1,72 @@
+{
+ "charts": [],
+ "content": "[{\"id\":\"T5Jd5R8dSo\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Enhanced Payment Entries</span>\",\"col\":12}},{\"id\":\"kiMnnvwLn4\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Enhanced Payment Request\",\"col\":3}},{\"id\":\"alJkk1mmt6\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Enhanced Payment Entry\",\"col\":3}},{\"id\":\"ZsIpLGxhcF\",\"type\":\"card\",\"data\":{\"card_name\":\"Transactions\",\"col\":4}}]",
+ "creation": "2023-10-13 21:15:31.480135",
+ "custom_blocks": [],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "for_user": "",
+ "hide_custom": 0,
+ "icon": "income",
+ "idx": 0,
+ "is_hidden": 0,
+ "label": "Enhanced Payment Entries",
+ "links": [
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Transactions",
+   "link_count": 2,
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Enhanced Payment Entry",
+   "link_count": 0,
+   "link_to": "Enhanced Payment Entry",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Enhanced Payment Request",
+   "link_count": 0,
+   "link_to": "Enhanced Payment Request",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  }
+ ],
+ "modified": "2023-10-13 21:28:11.849408",
+ "modified_by": "a.fathy@infinitysys.org",
+ "module": "Enhanced Payment Entry",
+ "name": "Enhanced Payment Entries",
+ "number_cards": [],
+ "owner": "a.fathy@infinitysys.org",
+ "parent_page": "Accounting",
+ "public": 1,
+ "quick_lists": [],
+ "roles": [],
+ "sequence_id": 23.0,
+ "shortcuts": [
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Enhanced Payment Request",
+   "link_to": "Enhanced Payment Request",
+   "type": "DocType"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Enhanced Payment Entry",
+   "link_to": "Enhanced Payment Entry",
+   "type": "DocType"
+  }
+ ],
+ "title": "Enhanced Payment Entries"
+}

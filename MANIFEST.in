@@ -1,0 +1,18 @@
+include MANIFEST.in
+include requirements.txt
+include *.json
+include *.md
+include *.py
+include *.txt
+recursive-include enhanced_payment_entry *.css
+recursive-include enhanced_payment_entry *.csv
+recursive-include enhanced_payment_entry *.html
+recursive-include enhanced_payment_entry *.ico
+recursive-include enhanced_payment_entry *.js
+recursive-include enhanced_payment_entry *.json
+recursive-include enhanced_payment_entry *.md
+recursive-include enhanced_payment_entry *.png
+recursive-include enhanced_payment_entry *.py
+recursive-include enhanced_payment_entry *.svg
+recursive-include enhanced_payment_entry *.txt
+recursive-exclude enhanced_payment_entry *.pyc
