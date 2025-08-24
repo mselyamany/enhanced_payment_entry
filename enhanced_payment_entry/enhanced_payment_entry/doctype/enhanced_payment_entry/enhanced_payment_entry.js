@@ -4,9 +4,6 @@ frappe.provide("erpnext.accounts.dimensions");
 
 frappe.ui.form.on('Enhanced Payment Entry', {
 	refresh: function(frm) {
-
-		
-		//frm.set_value('cost_center', frappe.get_cached_value('Company', frm.doc.company, "cost_center"))
 		if(frm.doc.docstatus==1) {			
 			frm.add_custom_button(__('View GL Entry'), function() {
 				frappe.route_options = {
@@ -21,12 +18,10 @@ frappe.ui.form.on('Enhanced Payment Entry', {
 		}
 
 		if (frm.is_new()){
-			var company_currency = frm.doc.company? frappe.get_doc(":Company", frm.doc.company).default_currency: "";
-			frm.set_currency_labels(["allocated"], company_currency);
-			frm.set_currency_labels(["difference"], company_currency);
+			var company_currency = frm.doc.company ? frappe.get_doc(":Company", frm.doc.company).default_currency: "";
+			frm.set_currency_labels(["allocated", "difference"], company_currency);
 		
 			frm.toggle_display(["rate", "base_amount"], (frm.doc.account_currency != company_currency));
-			//frm.toggle_display("base_amount", (frm.doc.account_currency != company_currency));
 		
 			frm.set_currency_labels(["amount"], frm.doc.account_currency);
 			frm.set_currency_labels(["base_amount"], company_currency);
@@ -37,8 +32,7 @@ frappe.ui.form.on('Enhanced Payment Entry', {
 		}
 
 		frm.set_query("account", function() {
-
-			var account_types = ["Bank", "Cash"] 
+			var account_types = ["Bank", "Cash"];
 			return {
 				filters: {
 					"account_type": ["in", account_types],
@@ -73,19 +67,13 @@ frappe.ui.form.on('Enhanced Payment Entry', {
 			}
 		});
 	},
-	setup: function(doc) {
-		
-	},
-	onload: function(frm){
-		//console.log('Loading......')
-		//erpnext.accounts.dimensions.setup_dimension_filters(frm, frm.doctype);
-	},
+
 	company: function(frm) {
-		var company_currency = frm.doc.company? frappe.get_doc(":Company", frm.doc.company).default_currency: "";
-		frm.set_currency_labels(["allocated"], company_currency);
-		frm.set_currency_labels(["difference"], company_currency);
+		var company_currency = frm.doc.company ? frappe.get_doc(":Company", frm.doc.company).default_currency: "";
+		frm.set_currency_labels(["allocated", "difference"], company_currency);
 		erpnext.accounts.dimensions.update_dimension(frm, frm.doctype);
 	},
+
 	before_save: function(frm){
 		recalculate_all(frm);
 		propagate_cost_center(frm);
@@ -99,14 +87,13 @@ frappe.ui.form.on('Enhanced Payment Entry', {
 					"mode_of_payment": frm.doc.mode_of_payment,
 					"company": frm.doc.company
 				},
-				callback: function(r, rt) {
+				callback: function(r) {
 					if(r.message) {
 						frm.set_value('account',r.message.account)
 					}
 				}
 			});
 		}
-		
 	},
 
 	account: function(frm){
@@ -124,12 +111,11 @@ frappe.ui.form.on('Enhanced Payment Entry', {
 			}
 		})
 	},
+
 	account_currency: function(frm){
 		var company_currency = frm.doc.company? frappe.get_doc(":Company", frm.doc.company).default_currency: "";
 		
-		
 		frm.toggle_display(["rate", "base_amount"], (frm.doc.account_currency != company_currency));
-		//frm.toggle_display("base_amount", (frm.doc.account_currency != company_currency));
 		
 		frm.set_currency_labels(["amount"], frm.doc.account_currency);
 		frm.set_currency_labels(["base_amount"], company_currency);
@@ -149,7 +135,6 @@ frappe.ui.form.on('Enhanced Payment Entry', {
 				callback: function(r) {
 					if(r) {
 						frm.set_value('rate', r.message);
-						
 					}
 				}
 			})
@@ -185,46 +170,54 @@ frappe.ui.form.on('Enhanced Payment Entry', {
 	}
 });
 
+
 frappe.ui.form.on('Enhanced Payment Entry Account', {
 	accounts_add: function(frm, cdt, cdn) {
 		var row = locals[cdt][cdn];
 		if (!row.cost_center && frm.doc.cost_center){
 			row.cost_center = frm.doc.cost_center
 		}
-		//recalculate_all(frm);
 	},
+
 	account: function(frm, cdt, cdn){
 		var company_currency = frm.doc.company? frappe.get_doc(":Company", frm.doc.company).default_currency: "";
 		var row = locals[cdt][cdn];
+
+		// Reset currency first
 		frappe.model.set_value(row.doctype,row.name, 'account_currency', null);
-		frappe.db.get_value('Account', row.account, 'account_currency').then(ac=>{
-			frappe.model.set_value(row.doctype,row.name, 'account_currency', ac.message.account_currency);
-		} )
+
+		// Get account currency
+		frappe.db.get_value('Account', row.account, ['account_currency','account_type']).then(ac=>{
+			if(ac.message.account_currency){
+				frappe.model.set_value(row.doctype,row.name, 'account_currency', ac.message.account_currency);
+			}
+			if(ac.message.account_type){
+				frappe.model.set_value(row.doctype,row.name, 'party_type', ac.message.account_type);
+			}
+		});
+
+		// Get balance
 		frappe.call({
-			method: "erpnext.accounts.doctype.journal_entry.journal_entry.get_account_balance_and_party_type",
+			method: "erpnext.accounts.utils.get_balance_on",
 			args: {
-				account: row.account,
+				company: frm.doc.company,
 				date: frm.doc.posting_date,
-				company: frm.doc.company
+				account: row.account
 			},
 			callback: function(r) {
 				if(r.message) {
-					var msg = r.message;
-					if (msg.party_type){
-						frappe.model.set_value(row.doctype,row.name, 'party_type', msg.party_type);
-						frm.refresh_field('accounts');
-					}
+					frappe.model.set_value(row.doctype,row.name, 'account_balance', r.message);
+					frm.refresh_field('accounts');
 				}
 			}
 		});
-		
 	},
+
 	account_currency: function(frm, cdt, cdn){
 		var row = locals[cdt][cdn];
 		var company_currency = frm.doc.company? frappe.get_doc(":Company", frm.doc.company).default_currency: "";
-		
-		
-		frm.toggle_display("rate", (row.account_currency != company_currency, 'accounts'));
+
+		frm.toggle_display("rate", (row.account_currency != company_currency), 'accounts');
 		frm.toggle_display("base_amount", (row.account_currency != company_currency), 'accounts');
 
 		if (row.account_currency != company_currency){
@@ -243,16 +236,12 @@ frappe.ui.form.on('Enhanced Payment Entry Account', {
 			})
 		}
 	},
-	
+
 	amount: function(frm, cdt, cdn){
 		recalculate_all(frm);
 	}
 });
 
-
-function set_account_party_type(frm, account){
-
-}
 
 function calculate_base_amount(frm){
 	if (frm.doc.amount && frm.doc.rate){
@@ -261,7 +250,6 @@ function calculate_base_amount(frm){
 }
 
 var recalculate_all = function(frm){
-	//console.log('Recalc', frm.doc.accounts)
 	var company_currency = frm.doc.company? frappe.get_doc(":Company", frm.doc.company).default_currency: "";
 	var allocated = 0;
 	var amount = frm.doc.account_currency == company_currency? frm.doc.amount : frm.doc.base_amount;
@@ -270,13 +258,12 @@ var recalculate_all = function(frm){
 			if (d.rate && d.rate > 0){
 				frappe.model.set_value(d.doctype,d.name, 'base_amount', flt(d.amount) * flt(d.rate));	
 			}else{
-				frappe.throw('')
+				frappe.throw(__('Missing Exchange Rate in row ' + d.idx));
 			}
 		}
 		allocated += d.account_currency == company_currency? d.amount : d.base_amount;
 	});
 	frm.set_value('allocated', flt(allocated));
-
 	frm.set_value('difference', flt(amount) - flt(allocated));
 }
 
